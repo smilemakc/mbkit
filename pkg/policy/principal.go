@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	pkg "github.com/smilemakc/mbkit"
-	"github.com/smilemakc/mbkit/roles"
+	"github.com/smilemakc/mbkit/pkg/roles"
 )
 
 // Principal describes user identity and roles

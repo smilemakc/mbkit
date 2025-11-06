@@ -1,4 +1,4 @@
-package httpapi
+package endpoint
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/smilemakc/mbkit/internal/l"
-	"github.com/smilemakc/mbkit/policy"
+	"github.com/smilemakc/mbkit/pkg/policy"
 
 	"github.com/uptrace/bun"
 )

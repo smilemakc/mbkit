@@ -7,9 +7,9 @@ import (
 	"fmt"
 
 	pkg "github.com/smilemakc/mbkit"
-	mberr "github.com/smilemakc/mbkit/errors"
-	"github.com/smilemakc/mbkit/filters"
 	"github.com/smilemakc/mbkit/internal/l"
+	mberr "github.com/smilemakc/mbkit/pkg/errors"
+	"github.com/smilemakc/mbkit/pkg/filters"
 
 	"github.com/uptrace/bun"
 )

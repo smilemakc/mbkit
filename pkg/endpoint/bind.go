@@ -1,4 +1,4 @@
-package httpapi
+package endpoint
 
 import (
 	"context"
@@ -7,8 +7,8 @@ import (
 
 	"github.com/google/uuid"
 	pkg "github.com/smilemakc/mbkit"
-	"github.com/smilemakc/mbkit/models"
-	"github.com/smilemakc/mbkit/trackable"
+	"github.com/smilemakc/mbkit/pkg/models"
+	"github.com/smilemakc/mbkit/pkg/trackable"
 	"github.com/uptrace/bun"
 )
 

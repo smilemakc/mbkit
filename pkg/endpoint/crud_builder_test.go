@@ -1,12 +1,12 @@
-package httpapi
+package endpoint
 
 import (
 	"context"
 	"testing"
 
-	"github.com/smilemakc/mbkit/filters"
-	"github.com/smilemakc/mbkit/service"
-	"github.com/smilemakc/mbkit/utils"
+	"github.com/smilemakc/mbkit/pkg/filters"
+	"github.com/smilemakc/mbkit/pkg/service"
+	"github.com/smilemakc/mbkit/pkg/utils"
 	"github.com/stretchr/testify/require"
 	"github.com/uptrace/bun"
 )

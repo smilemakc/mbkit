@@ -1,13 +1,13 @@
-package httpapi
+package endpoint
 
 import (
 	"context"
 
 	pkg "github.com/smilemakc/mbkit"
-	"github.com/smilemakc/mbkit/auth"
-	"github.com/smilemakc/mbkit/filters"
-	"github.com/smilemakc/mbkit/policy"
-	"github.com/smilemakc/mbkit/service"
+	"github.com/smilemakc/mbkit/pkg/auth"
+	"github.com/smilemakc/mbkit/pkg/filters"
+	"github.com/smilemakc/mbkit/pkg/policy"
+	"github.com/smilemakc/mbkit/pkg/service"
 	"github.com/uptrace/bun"
 )
 

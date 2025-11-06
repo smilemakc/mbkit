@@ -1,4 +1,4 @@
-package httpapi
+package endpoint
 
 import (
 	"context"
@@ -6,8 +6,8 @@ import (
 
 	"github.com/google/uuid"
 	pkg "github.com/smilemakc/mbkit"
-	"github.com/smilemakc/mbkit/auth"
-	"github.com/smilemakc/mbkit/policy"
+	"github.com/smilemakc/mbkit/pkg/auth"
+	"github.com/smilemakc/mbkit/pkg/policy"
 )
 
 // PrincipalExtractor returns a UserIDExtractor that fetches a user ID of type ID from the context using the specified extractor.

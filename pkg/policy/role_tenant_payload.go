@@ -5,7 +5,7 @@ import (
 
 	pkg "github.com/smilemakc/mbkit"
 	"github.com/smilemakc/mbkit/internal/l"
-	"github.com/smilemakc/mbkit/roles"
+	"github.com/smilemakc/mbkit/pkg/roles"
 	"github.com/uptrace/bun"
 )
 

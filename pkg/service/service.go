@@ -5,9 +5,9 @@ import (
 	"errors"
 
 	pkg "github.com/smilemakc/mbkit"
-	"github.com/smilemakc/mbkit/factory"
-	"github.com/smilemakc/mbkit/filters"
-	"github.com/smilemakc/mbkit/repository"
+	"github.com/smilemakc/mbkit/pkg/factory"
+	"github.com/smilemakc/mbkit/pkg/filters"
+	"github.com/smilemakc/mbkit/pkg/repository"
 
 	"github.com/uptrace/bun"
 )

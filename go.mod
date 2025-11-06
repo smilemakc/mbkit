@@ -1,6 +1,7 @@
 module github.com/smilemakc/mbkit
 
-go 1.25
+go 1.22
+toolchain go1.24.0
 
 require (
 	github.com/blaskovicz/go-cryptkeeper v0.0.0-20190930202326-736b85609f91

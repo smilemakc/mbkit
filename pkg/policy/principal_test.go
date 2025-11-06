@@ -7,7 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/smilemakc/mbkit/roles"
+	"github.com/smilemakc/mbkit/pkg/roles"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/smilemakc/mbkit/filters"
+	"github.com/smilemakc/mbkit/pkg/filters"
 	"github.com/uptrace/bun"
 )
 

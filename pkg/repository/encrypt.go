@@ -7,8 +7,8 @@ import (
 	"reflect"
 
 	pkg "github.com/smilemakc/mbkit"
-	"github.com/smilemakc/mbkit/encrypt"
-	"github.com/smilemakc/mbkit/filters"
+	"github.com/smilemakc/mbkit/pkg/encrypt"
+	"github.com/smilemakc/mbkit/pkg/filters"
 	"github.com/uptrace/bun"
 )
 

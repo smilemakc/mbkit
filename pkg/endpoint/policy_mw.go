@@ -1,10 +1,10 @@
-package httpapi
+package endpoint
 
 import (
 	"context"
 
 	pkg "github.com/smilemakc/mbkit"
-	"github.com/smilemakc/mbkit/policy"
+	"github.com/smilemakc/mbkit/pkg/policy"
 	"github.com/uptrace/bun"
 )
 
