@@ -6,7 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	pkg "github.com/smilemakc/mbkit"
-	"github.com/smilemakc/mbkit/errors"
+	"github.com/smilemakc/mbkit/policy"
 	"github.com/smilemakc/mbkit/roles"
 
 	"github.com/uptrace/bun"
@@ -68,7 +68,7 @@ func (o *OwnerAccessControl[ID]) checkOwner(ctx context.Context, tx bun.IDB, id 
 		return err
 	}
 	if !exists {
-		return errors.ErrPermission
+		return policy.ErrForbidden
 	}
 	return nil
 }

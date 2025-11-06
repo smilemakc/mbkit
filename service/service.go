@@ -2,8 +2,8 @@ package service
 
 import (
 	"context"
+	"errors"
 
-	"github.com/pkg/errors"
 	pkg "github.com/smilemakc/mbkit"
 	"github.com/smilemakc/mbkit/factory"
 	"github.com/smilemakc/mbkit/filters"

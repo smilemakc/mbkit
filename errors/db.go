@@ -1,9 +1,9 @@
 package errors
 
 import (
+	"errors"
 	"fmt"
 
-	"github.com/pkg/errors"
 	"github.com/uptrace/bun/driver/pgdriver"
 )
 

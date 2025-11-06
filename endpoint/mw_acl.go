@@ -86,7 +86,7 @@ func ACLMiddleware[ID pkg.IDLike](
 				id = &val
 			}
 			if err := callACL(ctx, tx, acl, op, id); err != nil {
-				return nil, errors.ErrPermission
+				return nil, err
 			}
 			return next(ctx, tx, args)
 		}

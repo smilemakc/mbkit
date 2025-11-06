@@ -113,7 +113,11 @@ func (ga *GinAdapter) Mount(base string, endpoints ...Endpoint) {
 }
 
 func DefaultGinErrWriter(c *gin.Context, err error) {
-	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	status, payload := ClassifyHTTPError(err)
+	if status >= http.StatusInternalServerError {
+		l.Log.Error().Err(err).Int("status", status).Str("path", c.FullPath()).Msg("request failed")
+	}
+	c.JSON(status, payload)
 }
 
 // DefaultGinHTMLWriter writes an HTML response or just a status if there's no content.

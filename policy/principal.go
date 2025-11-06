@@ -18,7 +18,9 @@ type Principal struct {
 }
 
 // private key type to avoid collisions in context
-const principalKey = "mb.policy.principal"
+type principalCtxKey struct{}
+
+var principalKey = principalCtxKey{}
 
 // WithPrincipal stores Principal in context
 func WithPrincipal(ctx context.Context, p *Principal) context.Context {
@@ -26,7 +28,9 @@ func WithPrincipal(ctx context.Context, p *Principal) context.Context {
 }
 
 func WithGinPrincipal(c *gin.Context, p *Principal) *gin.Context {
-	c.Set(principalKey, p)
+	// gin.Context uses string keys; keep a namespaced string to avoid collisions
+	const ginPrincipalKey = "mb.policy.principal"
+	c.Set(ginPrincipalKey, p)
 	return c
 }
 

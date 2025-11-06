@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 
 	pkg "github.com/smilemakc/mbkit"
@@ -10,7 +11,6 @@ import (
 	"github.com/smilemakc/mbkit/filters"
 	"github.com/smilemakc/mbkit/internal/l"
 
-	"github.com/pkg/errors"
 	"github.com/uptrace/bun"
 )
 

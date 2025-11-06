@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/pkg/errors"
 	pkg "github.com/smilemakc/mbkit"
 	"github.com/smilemakc/mbkit/factory"
 	"github.com/smilemakc/mbkit/filters"
@@ -128,10 +127,10 @@ func (b *Builder[T, CreateParams, UpdateParams, ID]) Build() (
 	Service[T, CreateParams, UpdateParams, ID], error,
 ) {
 	if b.repo == nil {
-		return nil, errors.New("build service: repository is required")
+		return nil, fmt.Errorf("build service: repository is required")
 	}
 	if b.factory == nil {
-		return nil, errors.New("build service: factory is required")
+		return nil, fmt.Errorf("build service: factory is required")
 	}
 
 	// Apply repository middlewares (execute in the order they were added)
@@ -210,19 +209,19 @@ func (s *hookedService[T, CreateParams, UpdateParams, ID]) Create(
 ) (*T, error) {
 	obj, err := s.factory.Create(ctx, params)
 	if err != nil {
-		return nil, errors.Wrap(err, "service.create: factory.Create failed")
+		return nil, fmt.Errorf("service.create: factory.Create failed: %w", err)
 	}
 	for i, h := range s.beforeCreate {
 		if err := h(ctx, tx, obj); err != nil {
-			return nil, errors.Wrapf(err, "service.create: beforeCreate[%d] failed", i)
+			return nil, fmt.Errorf("service.create: beforeCreate[%d] failed: %w", i, err)
 		}
 	}
 	if err := s.repo.Save(ctx, tx, obj); err != nil {
-		return nil, errors.Wrap(err, "service.create: repo.Save failed")
+		return nil, fmt.Errorf("service.create: repo.Save failed: %w", err)
 	}
 	for i, h := range s.afterCreate {
 		if err := h(ctx, tx, obj); err != nil {
-			return nil, errors.Wrapf(err, "service.create: afterCreate[%d] failed", i)
+			return nil, fmt.Errorf("service.create: afterCreate[%d] failed: %w", i, err)
 		}
 	}
 	return obj, nil
@@ -292,15 +291,15 @@ func (s *hookedService[T, CreateParams, UpdateParams, ID]) Update(
 func (s *hookedService[T, CreateParams, UpdateParams, ID]) Delete(ctx context.Context, tx bun.IDB, id ID) error {
 	for i, h := range s.beforeDelete {
 		if err := h(ctx, tx, id); err != nil {
-			return errors.Wrapf(err, "service.delete: beforeDelete[%d] failed", i)
+			return fmt.Errorf("service.delete: beforeDelete[%d] failed: %w", i, err)
 		}
 	}
 	if err := s.repo.Delete(ctx, tx, id); err != nil {
-		return errors.Wrap(err, "service.delete: repo.Delete failed")
+		return fmt.Errorf("service.delete: repo.Delete failed: %w", err)
 	}
 	for i, h := range s.afterDelete {
 		if err := h(ctx, tx, id); err != nil {
-			return errors.Wrapf(err, "service.delete: afterDelete[%d] failed", i)
+			return fmt.Errorf("service.delete: afterDelete[%d] failed: %w", i, err)
 		}
 	}
 	return nil
