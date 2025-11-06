@@ -4,6 +4,8 @@ type Role int
 
 const (
 	SimpleUser    Role = 1 << 0 // SimpleUser represents a role for basic users with the least access permission in the system. 1
+	PremiumUser   Role = 1 << 1 // PremiumUser represents a role with elevated permissions compared to SimpleUser. 2
+	CorporateUser Role = 1 << 2 // CorporateUser represents organization-level access. 4
 	AdminRole     Role = 1 << 8 // AdminRole represents an admin user role with specific elevated permissions. 256
 	SuperUserRole Role = 1 << 9 // SuperUserRole is a Role constant representing a superuser with elevated permissions. 512
 )

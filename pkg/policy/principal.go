@@ -22,14 +22,14 @@ type principalCtxKey struct{}
 
 var principalKey = principalCtxKey{}
 
+const ginPrincipalKey = "mb.policy.principal"
+
 // WithPrincipal stores Principal in context
 func WithPrincipal(ctx context.Context, p *Principal) context.Context {
 	return context.WithValue(ctx, principalKey, p)
 }
 
 func WithGinPrincipal(c *gin.Context, p *Principal) *gin.Context {
-	// gin.Context uses string keys; keep a namespaced string to avoid collisions
-	const ginPrincipalKey = "mb.policy.principal"
 	c.Set(ginPrincipalKey, p)
 	return c
 }
@@ -45,10 +45,15 @@ func HasRole(p *Principal, role roles.Role) bool {
 	if p == nil {
 		return false
 	}
-	if roles.HasAny(roles.AdminOrSuperuserRoles(), p.Roles...) {
+	if roles.Has(p.RolesMask(), roles.SuperUserRole) {
 		return true
 	}
 	return roles.HasAny([]roles.Role{role}, p.Roles...)
+}
+
+// RolesMask returns bitmask of roles for convenience checks.
+func (p *Principal) RolesMask() roles.Role {
+	return roles.ToMask(p.Roles...)
 }
 
 type FromPrincipalExtractor[T any] = func(p *Principal) (T, error)

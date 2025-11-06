@@ -58,16 +58,14 @@ func TestOwnerByJoinPolicy_Check(t *testing.T) {
 	assert.Equal(t, ErrUnauthorized, err)
 
 	// Exists = true
-	mock.ExpectQuery(`SELECT EXISTS \(SELECT 1 FROM "test_table" WHERE \(test_table.owner_id = \$1\) LIMIT 1\)`).
-		WithArgs("parsed_user1").
+	mock.ExpectQuery(`SELECT EXISTS \(SELECT 1 FROM "test_table" WHERE \(test_table.owner_id = 'parsed_user1'\) LIMIT 1\)`).
 		WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
 
 	err = p.Check(principalCtx(ctx, "user1"), bunDB, "", ObjID[string]{Val: "id1"})
 	assert.NoError(t, err)
 
 	// Exists = false
-	mock.ExpectQuery(`SELECT EXISTS \(SELECT 1 FROM "test_table" WHERE \(test_table.owner_id = \$1\) LIMIT 1\)`).
-		WithArgs("parsed_user1").
+	mock.ExpectQuery(`SELECT EXISTS \(SELECT 1 FROM "test_table" WHERE \(test_table.owner_id = 'parsed_user1'\) LIMIT 1\)`).
 		WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(false))
 
 	err = p.Check(principalCtx(ctx, "user1"), bunDB, "", ObjID[string]{Val: "id1"})
@@ -128,8 +126,7 @@ func TestOwnerByJoinPolicy_Validate(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Valid ID but record not found
-	mock.ExpectQuery(`SELECT EXISTS \(SELECT 1 FROM "test_table" WHERE \(test_table.owner_id = \$1\) LIMIT 1\)`).
-		WithArgs("parsed_user1").
+	mock.ExpectQuery(`SELECT EXISTS \(SELECT 1 FROM "test_table" WHERE \(test_table.owner_id = 'parsed_user1'\) LIMIT 1\)`).
 		WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(false))
 
 	err = p.Validate(principalCtx(ctx, "user1"), bunDB, ActCreate, "payload")

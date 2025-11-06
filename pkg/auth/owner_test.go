@@ -3,11 +3,12 @@ package auth
 import (
 	"context"
 	"errors"
+	"fmt"
 	"regexp"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/smilemakc/gptunnel/internal/e"
+	"github.com/smilemakc/mbkit/pkg/policy"
 	"github.com/stretchr/testify/assert"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
@@ -32,8 +33,26 @@ func withUserID[ID any](ctx context.Context, id any) context.Context {
 	return context.WithValue(ctx, userIDKey, id)
 }
 
+const userIDKey = "user_id"
+
+func intUserExtractor(ctx context.Context) (int, error) {
+	value := ctx.Value(userIDKey)
+	if v, ok := value.(int); ok {
+		return v, nil
+	}
+	return 0, fmt.Errorf("%w: %s", policy.ErrNotFound, "user id not found")
+}
+
+func stringUserExtractor(ctx context.Context) (string, error) {
+	value := ctx.Value(userIDKey)
+	if v, ok := value.(string); ok {
+		return v, nil
+	}
+	return "", fmt.Errorf("%w: %s", policy.ErrNotFound, "user id not found")
+}
+
 func TestOwnerAccessControl_CanList_Create_ContextUser(t *testing.T) {
-	acl := NewOwnerAccessControl[int]("user_id", "items")
+	acl := NewOwnerAccessControl[int]("user_id", "items", intUserExtractor)
 
 	// success when user id present
 	ctx := withUserID[int](context.Background(), 42)
@@ -45,7 +64,7 @@ func TestOwnerAccessControl_CanList_Create_ContextUser(t *testing.T) {
 	}
 
 	// missing user id
-	if err := acl.CanList(context.Background(), nil); !errors.Is(err, e.ErrNotFound) {
+	if err := acl.CanList(context.Background(), nil); !errors.Is(err, policy.ErrNotFound) {
 		t.Fatalf("expected ErrNotFound, got %v", err)
 	}
 
@@ -60,7 +79,7 @@ func TestOwnerAccessControl_CanRead_Update_Delete_DB(t *testing.T) {
 	bunDB, mock, cleanup := newMockBunDB(t)
 	defer cleanup()
 
-	acl := NewOwnerAccessControl[int]("user_id", "items")
+	acl := NewOwnerAccessControl[int]("user_id", "items", intUserExtractor)
 
 	ctx := withUserID[int](context.Background(), 7)
 	// allow case: Exists returns a row
@@ -75,7 +94,7 @@ func TestOwnerAccessControl_CanRead_Update_Delete_DB(t *testing.T) {
 	mock.ExpectQuery(regexp.QuoteMeta(`SELECT EXISTS (SELECT * FROM "items" WHERE (id = 123) AND (user_id = 7) LIMIT 1)`)).
 		WillReturnRows(sqlmock.NewRows([]string{"1"}).AddRow(0))
 
-	if err := acl.CanUpdate(ctx, bunDB, 123); !errors.Is(err, e.ErrPermission) {
+	if err := acl.CanUpdate(ctx, bunDB, 123); !errors.Is(err, policy.ErrPermission) {
 		t.Fatalf("expected ErrPermission, got %v", err)
 	}
 
@@ -94,7 +113,7 @@ func TestOwnerAccessControl_CanRead_Update_Delete_DB(t *testing.T) {
 
 func TestOwnerOrAdminAccessControl_RoleBypass(t *testing.T) {
 	// roleCheck returns true, so no db access is needed
-	acl := NewOwnerOrAdminAccessControl[int]("user_id", "items", func(ctx context.Context) (bool, error) {
+	acl := NewOwnerOrAdminAccessControl[int](NewOwnerAccessControl[int]("user_id", "items", intUserExtractor), func(ctx context.Context) (bool, error) {
 		return true, nil
 	})
 	// provide empty ctx, should still allow
@@ -116,7 +135,7 @@ func TestOwnerOrAdminAccessControl_RoleBypass(t *testing.T) {
 }
 
 func TestOwnerOrAdminAccessControl_RoleCheckError(t *testing.T) {
-	acl := NewOwnerOrAdminAccessControl[int]("user_id", "items", func(ctx context.Context) (bool, error) {
+	acl := NewOwnerOrAdminAccessControl[int](NewOwnerAccessControl[int]("user_id", "items", intUserExtractor), func(ctx context.Context) (bool, error) {
 		return false, errors.New("role svc err")
 	})
 	if err := acl.CanList(context.Background(), nil); err == nil || !regexp.MustCompile(`role check failed`).MatchString(err.Error()) {
@@ -129,7 +148,7 @@ func TestOwnerOrAdminAccessControl_FallbackToOwner(t *testing.T) {
 	defer cleanup()
 
 	// roleCheck false -> fallback to owner check
-	acl := NewOwnerOrAdminAccessControl[int]("user_id", "items", func(ctx context.Context) (bool, error) {
+	acl := NewOwnerOrAdminAccessControl[int](NewOwnerAccessControl[int]("user_id", "items", intUserExtractor), func(ctx context.Context) (bool, error) {
 		return false, nil
 	})
 
@@ -147,7 +166,7 @@ func TestOwnerOrAdminAccessControl_FallbackToOwner(t *testing.T) {
 	mock.ExpectQuery(regexp.QuoteMeta(`SELECT EXISTS (SELECT * FROM "items" WHERE (id = 55) AND (user_id = 9) LIMIT 1)`)).
 		WillReturnRows(sqlmock.NewRows([]string{"1"}).AddRow(0))
 
-	if err := acl.CanUpdate(ctx, bunDB, 55); !errors.Is(err, e.ErrPermission) {
+	if err := acl.CanUpdate(ctx, bunDB, 55); !errors.Is(err, policy.ErrPermission) {
 		t.Fatalf("expected ErrPermission, got %v", err)
 	}
 
@@ -170,7 +189,7 @@ func TestOwnerAccessControl_CanRead(t *testing.T) {
 
 		ctx := context.WithValue(context.Background(), userIDKey, "user-id")
 
-		a := NewOwnerAccessControl[string](field, table)
+		a := NewOwnerAccessControl[string](field, table, stringUserExtractor)
 
 		err := a.CanRead(ctx, db, "entity-id")
 		assert.NoError(t, err)
@@ -187,11 +206,11 @@ func TestOwnerAccessControl_CanRead(t *testing.T) {
 
 		ctx := context.WithValue(context.Background(), userIDKey, "other-user")
 
-		a := NewOwnerAccessControl[string](field, table)
+		a := NewOwnerAccessControl[string](field, table, stringUserExtractor)
 
 		err := a.CanRead(ctx, db, "entity-id")
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), e.ErrPermission.Error())
+		assert.Contains(t, err.Error(), policy.ErrPermission.Error())
 		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
@@ -201,10 +220,10 @@ func TestOwnerAccessControl_CanRead(t *testing.T) {
 
 		ctx := context.Background()
 
-		a := NewOwnerAccessControl[string](field, table)
+		a := NewOwnerAccessControl[string](field, table, stringUserExtractor)
 
 		err := a.CanRead(ctx, db, "entity-id")
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), e.ErrNotFound.Error())
+		assert.Contains(t, err.Error(), policy.ErrNotFound.Error())
 	})
 }

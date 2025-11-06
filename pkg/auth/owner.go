@@ -20,7 +20,7 @@ func UserIDFromContextExtractor(ctx context.Context) (uuid.UUID, error) {
 	if v, ok := value.(string); ok {
 		return uuid.Parse(v)
 	}
-	return uuid.Nil, fmt.Errorf("user_id is not found in context")
+	return uuid.Nil, fmt.Errorf("%w: user_id is not found in context", policy.ErrNotFound)
 }
 
 func UserRolesFromContextExtractor(ctx context.Context) ([]roles.Role, error) {
@@ -28,13 +28,13 @@ func UserRolesFromContextExtractor(ctx context.Context) ([]roles.Role, error) {
 	if v, ok := value.([]roles.Role); ok {
 		return v, nil
 	}
-	return nil, fmt.Errorf("user_roles is not found in context")
+	return nil, fmt.Errorf("%w: user_roles is not found in context", policy.ErrNotFound)
 }
 
 func IsAdmin(ctx context.Context) (bool, error) {
 	userRoles, err := UserRolesFromContextExtractor(ctx)
 	if err != nil {
-		return false, fmt.Errorf("can't extract user roles: %w", err)
+		return false, fmt.Errorf("role check failed: %w", err)
 	}
 	roles.HasAny(userRoles, roles.AdminRole)
 	return roles.HasAny(roles.AdminOrSuperuserRoles(), userRoles...), nil
@@ -68,7 +68,7 @@ func (o *OwnerAccessControl[ID]) checkOwner(ctx context.Context, tx bun.IDB, id 
 		return err
 	}
 	if !exists {
-		return policy.ErrForbidden
+		return fmt.Errorf("%w: owner mismatch", policy.ErrPermission)
 	}
 	return nil
 }
@@ -107,7 +107,7 @@ func NewOwnerOrAdminAccessControl[ID pkg.IDLike](
 
 func (a *OwnerOrAdminAccessControl[ID]) CanRead(ctx context.Context, tx bun.IDB, id ID) error {
 	if ok, err := a.isAdmin(ctx); err != nil {
-		return err
+		return fmt.Errorf("role check failed: %w", err)
 	} else if ok {
 		return nil
 	}
@@ -115,7 +115,7 @@ func (a *OwnerOrAdminAccessControl[ID]) CanRead(ctx context.Context, tx bun.IDB,
 }
 func (a *OwnerOrAdminAccessControl[ID]) CanList(ctx context.Context, tx bun.IDB) error {
 	if ok, err := a.isAdmin(ctx); err != nil {
-		return err
+		return fmt.Errorf("role check failed: %w", err)
 	} else if ok {
 		return nil
 	}
@@ -123,7 +123,7 @@ func (a *OwnerOrAdminAccessControl[ID]) CanList(ctx context.Context, tx bun.IDB)
 }
 func (a *OwnerOrAdminAccessControl[ID]) CanCreate(ctx context.Context, tx bun.IDB) error {
 	if ok, err := a.isAdmin(ctx); err != nil {
-		return err
+		return fmt.Errorf("role check failed: %w", err)
 	} else if ok {
 		return nil
 	}
@@ -131,7 +131,7 @@ func (a *OwnerOrAdminAccessControl[ID]) CanCreate(ctx context.Context, tx bun.ID
 }
 func (a *OwnerOrAdminAccessControl[ID]) CanUpdate(ctx context.Context, tx bun.IDB, id ID) error {
 	if ok, err := a.isAdmin(ctx); err != nil {
-		return err
+		return fmt.Errorf("role check failed: %w", err)
 	} else if ok {
 		return nil
 	}
@@ -139,7 +139,7 @@ func (a *OwnerOrAdminAccessControl[ID]) CanUpdate(ctx context.Context, tx bun.ID
 }
 func (a *OwnerOrAdminAccessControl[ID]) CanDelete(ctx context.Context, tx bun.IDB, id ID) error {
 	if ok, err := a.isAdmin(ctx); err != nil {
-		return err
+		return fmt.Errorf("role check failed: %w", err)
 	} else if ok {
 		return nil
 	}

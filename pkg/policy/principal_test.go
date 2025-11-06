@@ -39,7 +39,7 @@ func TestWithGinPrincipal(t *testing.T) {
 		ginCtx := &gin.Context{}
 		WithGinPrincipal(ginCtx, principal)
 
-		retrievedPrincipal, exists := ginCtx.Get(principalKey)
+		retrievedPrincipal, exists := ginCtx.Get(ginPrincipalKey)
 		assert.True(t, exists)
 		assert.Equal(t, principal, retrievedPrincipal)
 	})

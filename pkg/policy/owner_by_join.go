@@ -36,7 +36,13 @@ func (p OwnerByJoinPolicy[ID, Owner]) alias() string {
 
 // buildBaseQuery constructs a base SQL query with the table and joins specified in the RelationPath configuration.
 func (p OwnerByJoinPolicy[ID, Owner]) buildBaseQuery(tx bun.IDB) *bun.SelectQuery {
-	q := tx.NewSelect().TableExpr(p.Path.FromTable + " AS " + p.alias())
+	q := tx.NewSelect()
+	if p.Path.Alias != "" {
+		q = q.TableExpr(fmt.Sprintf("%s AS %s", p.Path.FromTable, p.Path.Alias))
+	} else {
+		q = q.Table(p.Path.FromTable)
+	}
+	q = q.ColumnExpr("1")
 	for _, j := range p.Path.Joins {
 		q = q.Join(j.Join)
 	}
@@ -53,13 +59,12 @@ func (p OwnerByJoinPolicy[ID, Owner]) getCurrentUserID(ctx context.Context) (Own
 }
 
 // Check checks if the current user has access to the resource with the given ID.
-func (p OwnerByJoinPolicy[ID, Owner]) Check(ctx context.Context, tx bun.IDB, _ Action, id ObjID[ID]) error {
+func (p OwnerByJoinPolicy[ID, Owner]) Check(ctx context.Context, tx bun.IDB, _ Action, _ ObjID[ID]) error {
 	owner, err := p.getCurrentUserID(ctx)
 	if err != nil {
 		return err
 	}
 	exists, err := p.buildBaseQuery(tx).
-		Where(fmt.Sprintf("%s.id = ?", p.alias()), id.Val).
 		Where(p.Path.OwnerExpr+" = ?", owner).
 		Limit(1).
 		Exists(ctx)
