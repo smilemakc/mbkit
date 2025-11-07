@@ -5,14 +5,14 @@ import (
 	"errors"
 
 	pkg "github.com/smilemakc/mbkit"
-	bunrepo "github.com/smilemakc/mbkit/adapter/db/bun"
+	port "github.com/smilemakc/mbkit/application/service/port"
 	"github.com/smilemakc/mbkit/domain/factory"
 	"github.com/smilemakc/mbkit/domain/filters"
 
 	"github.com/uptrace/bun"
 )
 
-type GetterArgs = map[string]any
+type GetterArgs = port.GetterArgs
 
 type Creator[T any, CreateParams any] interface {
 	Create(ctx context.Context, tx bun.IDB, params CreateParams) (*T, error)
@@ -26,9 +26,9 @@ type Updater[T any, UpdateParams any, ID pkg.IDLike] interface {
 type Service[T any, CreateParams any, UpdateParams any, ID pkg.IDLike] interface {
 	Creator[T, CreateParams]
 	Updater[T, UpdateParams, ID]
-	bunrepo.Getter[T, ID]
-	bunrepo.Lister[T]
-	bunrepo.Deleter[ID]
+	port.Getter[T, ID]
+	port.Lister[T]
+	port.Deleter[ID]
 	// Create(ctx context.Context, tx bun.IDB, params CreateParams) (*T, error)
 	// Get(ctx context.Context, tx bun.IDB, id ID, args GetterArgs) (*T, error)
 	// List(ctx context.Context, tx bun.IDB, filter filters.ListFilter) (filters.ListResponse[T], error)
@@ -38,14 +38,14 @@ type Service[T any, CreateParams any, UpdateParams any, ID pkg.IDLike] interface
 
 // BaseService is a default implementation of Service.
 type BaseService[T any, CreateParams any, UpdateParams any, ID pkg.IDLike] struct {
-	repo    bunrepo.Repository[T, ID]
+	repo    port.Repository[T, ID]
 	factory factory.Factory[T, CreateParams, UpdateParams]
 }
 
 // NewService creates a new service with a given repository and factory.
 func NewService[T any, CreateParams any, UpdateParams any, ID pkg.IDLike](
 	f factory.Factory[T, CreateParams, UpdateParams],
-	r bunrepo.Repository[T, ID],
+	r port.Repository[T, ID],
 ) *BaseService[T, CreateParams, UpdateParams, ID] {
 	return &BaseService[T, CreateParams, UpdateParams, ID]{repo: r, factory: f}
 }

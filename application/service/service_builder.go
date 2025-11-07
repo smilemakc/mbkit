@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	pkg "github.com/smilemakc/mbkit"
-	bunrepo "github.com/smilemakc/mbkit/adapter/db/bun"
+	port "github.com/smilemakc/mbkit/application/service/port"
 	"github.com/smilemakc/mbkit/domain/factory"
 	"github.com/smilemakc/mbkit/domain/filters"
 	"github.com/uptrace/bun"
@@ -35,9 +35,9 @@ type AfterUpdateHookFunc[T any] func(ctx context.Context, tx bun.IDB, obj *T, co
 
 // Builder assembles a Repository, a Factory, and a Service instance with middleware and hooks.
 type Builder[T any, CreateParams any, UpdateParams any, ID pkg.IDLike] struct {
-	repo       bunrepo.Repository[T, ID]
+	repo       port.Repository[T, ID]
 	factory    factory.Factory[T, CreateParams, UpdateParams]
-	repoMWs    []bunrepo.Middleware[T, ID]
+	repoMWs    []port.Middleware[T, ID]
 	factoryMWs []factory.Middleware[T, CreateParams, UpdateParams]
 	serviceMWs []Middleware[T, CreateParams, UpdateParams, ID]
 
@@ -58,7 +58,7 @@ func NewServiceBuilder[T any, CreateParams any, UpdateParams any, ID pkg.IDLike]
 
 // WithRepository sets the Repository implementation.
 func (b *Builder[T, CreateParams, UpdateParams, ID]) WithRepository(
-	repo bunrepo.Repository[T, ID],
+	repo port.Repository[T, ID],
 ) *Builder[T, CreateParams, UpdateParams, ID] {
 	b.repo = repo
 	return b
@@ -74,7 +74,7 @@ func (b *Builder[T, CreateParams, UpdateParams, ID]) WithFactory(
 
 // WithRepoMiddleware adds a Repository middleware to the chain (applied in order).
 func (b *Builder[T, CreateParams, UpdateParams, ID]) WithRepoMiddleware(
-	mw bunrepo.Middleware[T, ID],
+	mw port.Middleware[T, ID],
 ) *Builder[T, CreateParams, UpdateParams, ID] {
 	b.repoMWs = append(b.repoMWs, mw)
 	return b
@@ -189,7 +189,7 @@ func (b *Builder[T, CreateParams, UpdateParams, ID]) Build() (
 // hookedService wraps service and executes hooks in a predictable order.
 // NOTE: Transaction control is delegated to the caller via bun.IDB.
 type hookedService[T any, CreateParams any, UpdateParams any, ID pkg.IDLike] struct {
-	repo    bunrepo.Repository[T, ID]
+	repo    port.Repository[T, ID]
 	factory factory.Factory[T, CreateParams, UpdateParams]
 
 	beforeCreate []HookFunc[T]

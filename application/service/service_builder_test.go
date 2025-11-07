@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/pkg/errors"
-	bunrepo "github.com/smilemakc/mbkit/adapter/db/bun"
+	port "github.com/smilemakc/mbkit/application/service/port"
 	"github.com/smilemakc/mbkit/domain/factory"
 	"github.com/smilemakc/mbkit/domain/filters"
 
@@ -64,8 +64,8 @@ func (r *fakeRepo) List(ctx context.Context, tx bun.IDB, f filters.ListFilter) (
 	return filters.ListResponse[User]{Items: []User{*r.obj}}, nil
 }
 
-// Ensure fakeRepo implements bunrepo.Repository[User, ID]
-var _ bunrepo.Repository[User, ID] = (*fakeRepo)(nil)
+// Ensure fakeRepo implements port.Repository[User, ID]
+var _ port.Repository[User, ID] = (*fakeRepo)(nil)
 
 // fake factory with configurable behaviors
 type fakeFactory struct {
@@ -249,8 +249,8 @@ func TestMiddlewares_OrderAcrossLayers(t *testing.T) {
 	var trace []string
 
 	// repo middleware
-	rm1 := func(next bunrepo.Repository[User, ID]) bunrepo.Repository[User, ID] {
-		return bunrepo.Func[User, ID]{
+	rm1 := func(next port.Repository[User, ID]) port.Repository[User, ID] {
+		return port.Func[User, ID]{
 			SaveFunc: func(ctx context.Context, tx bun.IDB, obj *User) error {
 				trace = append(trace, "rm1")
 				return next.Save(ctx, tx, obj)
@@ -261,8 +261,8 @@ func TestMiddlewares_OrderAcrossLayers(t *testing.T) {
 			ListFunc:   next.List,
 		}
 	}
-	rm2 := func(next bunrepo.Repository[User, ID]) bunrepo.Repository[User, ID] {
-		return bunrepo.Func[User, ID]{
+	rm2 := func(next port.Repository[User, ID]) port.Repository[User, ID] {
+		return port.Func[User, ID]{
 			SaveFunc: func(ctx context.Context, tx bun.IDB, obj *User) error {
 				trace = append(trace, "rm2")
 				return next.Save(ctx, tx, obj)
@@ -348,6 +348,6 @@ func TestMiddlewares_OrderAcrossLayers(t *testing.T) {
 	}
 }
 
-var _ bunrepo.Repository[User, ID] = bunrepo.Func[User, ID]{}
+var _ port.Repository[User, ID] = port.Func[User, ID]{}
 var _ factory.Factory[User, string, string] = factory.Func[User, string, string]{}
 var _ Service[User, string, string, ID] = Func[User, string, string, ID]{}
